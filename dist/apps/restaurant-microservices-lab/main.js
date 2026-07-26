@@ -246,6 +246,99 @@ exports.PagamentoModule = PagamentoModule = __decorate([
 
 /***/ },
 
+/***/ "./apps/restaurant-microservices-lab/src/pedidos/pedidos-service.service.ts"
+/*!**********************************************************************************!*\
+  !*** ./apps/restaurant-microservices-lab/src/pedidos/pedidos-service.service.ts ***!
+  \**********************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PedidosService = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
+let PedidosService = class PedidosService {
+    natsClient;
+    constructor(natsClient) {
+        this.natsClient = natsClient;
+    }
+    criarPedido(dto) {
+        this.natsClient.emit('pedido.criado', dto);
+        return { status: 'pedido criado', dto };
+    }
+};
+exports.PedidosService = PedidosService;
+exports.PedidosService = PedidosService = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)('NATS_CLIENT')),
+    __metadata("design:paramtypes", [typeof (_a = typeof microservices_1.ClientProxy !== "undefined" && microservices_1.ClientProxy) === "function" ? _a : Object])
+], PedidosService);
+
+
+/***/ },
+
+/***/ "./apps/restaurant-microservices-lab/src/pedidos/pedidos.controller.ts"
+/*!*****************************************************************************!*\
+  !*** ./apps/restaurant-microservices-lab/src/pedidos/pedidos.controller.ts ***!
+  \*****************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PedidosController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const pedidos_service_service_1 = __webpack_require__(/*! ./pedidos-service.service */ "./apps/restaurant-microservices-lab/src/pedidos/pedidos-service.service.ts");
+let PedidosController = class PedidosController {
+    pedidosService;
+    constructor(pedidosService) {
+        this.pedidosService = pedidosService;
+    }
+    criar(dto) {
+        return this.pedidosService.criarPedido(dto);
+    }
+};
+exports.PedidosController = PedidosController;
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], PedidosController.prototype, "criar", null);
+exports.PedidosController = PedidosController = __decorate([
+    (0, common_1.Controller)('pedidos'),
+    __metadata("design:paramtypes", [typeof (_a = typeof pedidos_service_service_1.PedidosService !== "undefined" && pedidos_service_service_1.PedidosService) === "function" ? _a : Object])
+], PedidosController);
+
+
+/***/ },
+
 /***/ "./apps/restaurant-microservices-lab/src/pedidos/pedidos.module.ts"
 /*!*************************************************************************!*\
   !*** ./apps/restaurant-microservices-lab/src/pedidos/pedidos.module.ts ***!
@@ -262,11 +355,26 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PedidosModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
+const pedidos_controller_1 = __webpack_require__(/*! ./pedidos.controller */ "./apps/restaurant-microservices-lab/src/pedidos/pedidos.controller.ts");
+const pedidos_service_service_1 = __webpack_require__(/*! ./pedidos-service.service */ "./apps/restaurant-microservices-lab/src/pedidos/pedidos-service.service.ts");
 let PedidosModule = class PedidosModule {
 };
 exports.PedidosModule = PedidosModule;
 exports.PedidosModule = PedidosModule = __decorate([
-    (0, common_1.Module)({})
+    (0, common_1.Module)({
+        imports: [
+            microservices_1.ClientsModule.register([
+                {
+                    name: 'NATS_CLIENT',
+                    transport: microservices_1.Transport.NATS,
+                    options: { servers: ['nats://localhost:4222'] },
+                },
+            ]),
+        ],
+        controllers: [pedidos_controller_1.PedidosController],
+        providers: [pedidos_service_service_1.PedidosService]
+    })
 ], PedidosModule);
 
 
@@ -299,6 +407,16 @@ module.exports = require("@nestjs/common");
 (module) {
 
 module.exports = require("@nestjs/core");
+
+/***/ },
+
+/***/ "@nestjs/microservices"
+/*!****************************************!*\
+  !*** external "@nestjs/microservices" ***!
+  \****************************************/
+(module) {
+
+module.exports = require("@nestjs/microservices");
 
 /***/ },
 

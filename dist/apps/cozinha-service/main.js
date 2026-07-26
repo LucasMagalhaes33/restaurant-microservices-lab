@@ -26,12 +26,17 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CozinhaServiceController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const cozinha_service_service_1 = __webpack_require__(/*! ./cozinha-service.service */ "./apps/cozinha-service/src/cozinha-service.service.ts");
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
 let CozinhaServiceController = class CozinhaServiceController {
     cozinhaServiceService;
     constructor(cozinhaServiceService) {
         this.cozinhaServiceService = cozinhaServiceService;
     }
     receberPedido(dto) {
+        return this.cozinhaServiceService.processarPedido(dto);
+    }
+    async aoReceberPedidoCriado(dto) {
+        console.log('Cozinha recebeu evento pedido.criado:', dto);
         return this.cozinhaServiceService.processarPedido(dto);
     }
 };
@@ -43,6 +48,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], CozinhaServiceController.prototype, "receberPedido", null);
+__decorate([
+    (0, microservices_1.EventPattern)('pedido.criado'),
+    __param(0, (0, microservices_1.Payload)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], CozinhaServiceController.prototype, "aoReceberPedidoCriado", null);
 exports.CozinhaServiceController = CozinhaServiceController = __decorate([
     (0, common_1.Controller)('cozinha'),
     __metadata("design:paramtypes", [typeof (_a = typeof cozinha_service_service_1.CozinhaServiceService !== "undefined" && cozinha_service_service_1.CozinhaServiceService) === "function" ? _a : Object])
@@ -130,6 +142,16 @@ module.exports = require("@nestjs/common");
 
 module.exports = require("@nestjs/core");
 
+/***/ },
+
+/***/ "@nestjs/microservices"
+/*!****************************************!*\
+  !*** external "@nestjs/microservices" ***!
+  \****************************************/
+(module) {
+
+module.exports = require("@nestjs/microservices");
+
 /***/ }
 
 /******/ 	});
@@ -175,9 +197,15 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
 const cozinha_service_module_1 = __webpack_require__(/*! ./cozinha-service.module */ "./apps/cozinha-service/src/cozinha-service.module.ts");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(cozinha_service_module_1.CozinhaServiceModule);
+    app.connectMicroservice({
+        transport: microservices_1.Transport.NATS,
+        options: { servers: ['nats://localhost:4222'] },
+    });
+    await app.startAllMicroservices();
     await app.listen(3001);
 }
 bootstrap();
