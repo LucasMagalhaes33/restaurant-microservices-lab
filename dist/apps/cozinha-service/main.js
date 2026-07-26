@@ -25,8 +25,11 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CozinhaServiceController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const cozinha_service_service_1 = __webpack_require__(/*! ./cozinha-service.service */ "./apps/cozinha-service/src/cozinha-service.service.ts");
 const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const cozinha_service_service_1 = __webpack_require__(/*! ./cozinha-service.service */ "./apps/cozinha-service/src/cozinha-service.service.ts");
+const pedido_criado_v1_event_1 = __webpack_require__(/*! ../../restaurant-microservices-lab/src/pedidos/events/pedido-criado-v1.event */ "./apps/restaurant-microservices-lab/src/pedidos/events/pedido-criado-v1.event.ts");
 let CozinhaServiceController = class CozinhaServiceController {
     cozinhaServiceService;
     constructor(cozinhaServiceService) {
@@ -35,9 +38,15 @@ let CozinhaServiceController = class CozinhaServiceController {
     receberPedido(dto) {
         return this.cozinhaServiceService.processarPedido(dto);
     }
-    async aoReceberPedidoCriado(dto) {
-        console.log('Cozinha recebeu evento pedido.criado:', dto);
-        return this.cozinhaServiceService.processarPedido(dto);
+    async aoReceberPedidoCriado(payload) {
+        const evento = (0, class_transformer_1.plainToInstance)(pedido_criado_v1_event_1.PedidoCriadoV1Event, payload);
+        const erros = await (0, class_validator_1.validate)(evento);
+        if (erros.length > 0) {
+            console.error('Evento pedido.criado.v1 chegou fora do contrato esperado:', erros);
+            return;
+        }
+        console.log('Cozinha recebeu evento pedido.criado.v1 (válido):', evento);
+        return this.cozinhaServiceService.processarPedido(evento);
     }
 };
 exports.CozinhaServiceController = CozinhaServiceController;
@@ -49,7 +58,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CozinhaServiceController.prototype, "receberPedido", null);
 __decorate([
-    (0, microservices_1.EventPattern)('pedido.criado'),
+    (0, microservices_1.EventPattern)('pedido.criado.v1'),
     __param(0, (0, microservices_1.Payload)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -124,6 +133,43 @@ exports.CozinhaServiceService = CozinhaServiceService = __decorate([
 
 /***/ },
 
+/***/ "./apps/restaurant-microservices-lab/src/pedidos/events/pedido-criado-v1.event.ts"
+/*!****************************************************************************************!*\
+  !*** ./apps/restaurant-microservices-lab/src/pedidos/events/pedido-criado-v1.event.ts ***!
+  \****************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PedidoCriadoV1Event = void 0;
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+class PedidoCriadoV1Event {
+    item;
+    mesa;
+}
+exports.PedidoCriadoV1Event = PedidoCriadoV1Event;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], PedidoCriadoV1Event.prototype, "item", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsPositive)(),
+    __metadata("design:type", Number)
+], PedidoCriadoV1Event.prototype, "mesa", void 0);
+
+
+/***/ },
+
 /***/ "@nestjs/common"
 /*!*********************************!*\
   !*** external "@nestjs/common" ***!
@@ -151,6 +197,26 @@ module.exports = require("@nestjs/core");
 (module) {
 
 module.exports = require("@nestjs/microservices");
+
+/***/ },
+
+/***/ "class-transformer"
+/*!************************************!*\
+  !*** external "class-transformer" ***!
+  \************************************/
+(module) {
+
+module.exports = require("class-transformer");
+
+/***/ },
+
+/***/ "class-validator"
+/*!**********************************!*\
+  !*** external "class-validator" ***!
+  \**********************************/
+(module) {
+
+module.exports = require("class-validator");
 
 /***/ }
 
