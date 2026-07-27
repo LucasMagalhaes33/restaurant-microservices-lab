@@ -38,15 +38,18 @@ let CozinhaServiceController = class CozinhaServiceController {
     receberPedido(dto) {
         return this.cozinhaServiceService.processarPedido(dto);
     }
-    async aoReceberPedidoCriado(payload) {
+    async aoReceberPagamentoAprovado(payload) {
         const evento = (0, class_transformer_1.plainToInstance)(pedido_criado_v1_event_1.PedidoCriadoV1Event, payload);
         const erros = await (0, class_validator_1.validate)(evento);
         if (erros.length > 0) {
-            console.error('Evento pedido.criado.v1 chegou fora do contrato esperado:', erros);
+            console.error('Evento pagamento.aprovado chegou fora do contrato esperado:', erros);
             return;
         }
-        console.log('Cozinha recebeu evento pedido.criado.v1 (válido):', evento);
+        console.log('Cozinha recebeu pagamento.aprovado (válido), iniciando preparo:', evento);
         return this.cozinhaServiceService.processarPedido(evento);
+    }
+    async aoReceberPagamentoRecusado(payload) {
+        console.log('Cozinha recebeu pagamento.recusado — pedido cancelado, não preparar:', payload);
     }
 };
 exports.CozinhaServiceController = CozinhaServiceController;
@@ -58,12 +61,19 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CozinhaServiceController.prototype, "receberPedido", null);
 __decorate([
-    (0, microservices_1.EventPattern)('pedido.criado.v1'),
+    (0, microservices_1.EventPattern)('pagamento.aprovado'),
     __param(0, (0, microservices_1.Payload)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], CozinhaServiceController.prototype, "aoReceberPedidoCriado", null);
+], CozinhaServiceController.prototype, "aoReceberPagamentoAprovado", null);
+__decorate([
+    (0, microservices_1.EventPattern)('pagamento.recusado'),
+    __param(0, (0, microservices_1.Payload)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], CozinhaServiceController.prototype, "aoReceberPagamentoRecusado", null);
 exports.CozinhaServiceController = CozinhaServiceController = __decorate([
     (0, common_1.Controller)('cozinha'),
     __metadata("design:paramtypes", [typeof (_a = typeof cozinha_service_service_1.CozinhaServiceService !== "undefined" && cozinha_service_service_1.CozinhaServiceService) === "function" ? _a : Object])

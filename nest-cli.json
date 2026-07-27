@@ -19,6 +19,15 @@
         "tsConfigPath": "apps/cozinha-service/tsconfig.app.json"
       }
     },
+    "pagamento-service": {
+      "type": "application",
+      "root": "apps/pagamento-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/pagamento-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/pagamento-service/tsconfig.app.json"
+      }
+    },
     "restaurant-microservices-lab": {
       "type": "application",
       "root": "apps/restaurant-microservices-lab",

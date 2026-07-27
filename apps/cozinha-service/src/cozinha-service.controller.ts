@@ -15,18 +15,30 @@ export class CozinhaServiceController {
     return this.cozinhaServiceService.processarPedido(dto);
   }
 
-  @EventPattern('pedido.criado.v1')
-  async aoReceberPedidoCriado(@Payload() payload: any) {
+  @EventPattern('pagamento.aprovado')
+  async aoReceberPagamentoAprovado(@Payload() payload: any) {
     const evento = plainToInstance(PedidoCriadoV1Event, payload);
     const erros = await validate(evento);
     if (erros.length > 0) {
       console.error(
-        'Evento pedido.criado.v1 chegou fora do contrato esperado:',
+        'Evento pagamento.aprovado chegou fora do contrato esperado:',
         erros,
       );
       return;
     }
-    console.log('Cozinha recebeu evento pedido.criado.v1 (válido):', evento);
+    console.log(
+      'Cozinha recebeu pagamento.aprovado (válido), iniciando preparo:',
+      evento,
+    );
     return this.cozinhaServiceService.processarPedido(evento);
+  }
+
+  @EventPattern('pagamento.recusado')
+  async aoReceberPagamentoRecusado(@Payload() payload: any) {
+    console.log(
+      'Cozinha recebeu pagamento.recusado — pedido cancelado, não preparar:',
+      payload,
+    );
+    // aqui entraria a lógica real de compensação, se algo já tivesse sido iniciado
   }
 }
