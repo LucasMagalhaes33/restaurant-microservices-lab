@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
@@ -40,5 +40,10 @@ export class CozinhaServiceController {
       payload,
     );
     // aqui entraria a lógica real de compensação, se algo já tivesse sido iniciado
+  }
+
+  @Get('health')
+  health() {
+    return { status: 'ok' };
   }
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class PagamentoServiceService {
-  getHello(): string {
-    return 'Hello World!';
+  decidirAprovacao(pedido: { mesa: number }): boolean {
+    return pedido.mesa % 2 === 0;
   }
 }

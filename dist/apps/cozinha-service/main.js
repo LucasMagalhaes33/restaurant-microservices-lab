@@ -51,6 +51,9 @@ let CozinhaServiceController = class CozinhaServiceController {
     async aoReceberPagamentoRecusado(payload) {
         console.log('Cozinha recebeu pagamento.recusado — pedido cancelado, não preparar:', payload);
     }
+    health() {
+        return { status: 'ok' };
+    }
 };
 exports.CozinhaServiceController = CozinhaServiceController;
 __decorate([
@@ -74,6 +77,12 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], CozinhaServiceController.prototype, "aoReceberPagamentoRecusado", null);
+__decorate([
+    (0, common_1.Get)('health'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CozinhaServiceController.prototype, "health", null);
 exports.CozinhaServiceController = CozinhaServiceController = __decorate([
     (0, common_1.Controller)('cozinha'),
     __metadata("design:paramtypes", [typeof (_a = typeof cozinha_service_service_1.CozinhaServiceService !== "undefined" && cozinha_service_service_1.CozinhaServiceService) === "function" ? _a : Object])
@@ -279,7 +288,7 @@ async function bootstrap() {
     const app = await core_1.NestFactory.create(cozinha_service_module_1.CozinhaServiceModule);
     app.connectMicroservice({
         transport: microservices_1.Transport.NATS,
-        options: { servers: ['nats://localhost:4222'] },
+        options: { servers: [process.env.NATS_URL ?? 'nats://localhost:4222'] },
     });
     await app.startAllMicroservices();
     await app.listen(3001);

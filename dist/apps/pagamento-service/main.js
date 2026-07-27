@@ -21,27 +21,27 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PagamentoServiceController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
 const microservices_2 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
+const pagamento_service_service_1 = __webpack_require__(/*! ./pagamento-service.service */ "./apps/pagamento-service/src/pagamento-service.service.ts");
 let PagamentoServiceController = class PagamentoServiceController {
     natsClient;
-    constructor(natsClient) {
+    pagamentoServiceService;
+    constructor(natsClient, pagamentoServiceService) {
         this.natsClient = natsClient;
+        this.pagamentoServiceService = pagamentoServiceService;
     }
     async processarPagamento(pedido) {
-        console.log('Pagamento recebeu pedido.criado.v1:', pedido);
-        const aprovado = pedido.mesa % 2 === 0;
+        const aprovado = this.pagamentoServiceService.decidirAprovacao(pedido);
         if (aprovado) {
             this.natsClient.emit('pagamento.aprovado', pedido);
-            console.log('Pagamento aprovado, evento publicado');
         }
         else {
             this.natsClient.emit('pagamento.recusado', pedido);
-            console.log('Pagamento recusado, evento de compensação publicado');
         }
     }
 };
@@ -56,7 +56,7 @@ __decorate([
 exports.PagamentoServiceController = PagamentoServiceController = __decorate([
     (0, common_1.Controller)(),
     __param(0, (0, common_1.Inject)('NATS_CLIENT')),
-    __metadata("design:paramtypes", [typeof (_a = typeof microservices_2.ClientProxy !== "undefined" && microservices_2.ClientProxy) === "function" ? _a : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof microservices_2.ClientProxy !== "undefined" && microservices_2.ClientProxy) === "function" ? _a : Object, typeof (_b = typeof pagamento_service_service_1.PagamentoServiceService !== "undefined" && pagamento_service_service_1.PagamentoServiceService) === "function" ? _b : Object])
 ], PagamentoServiceController);
 
 
@@ -120,8 +120,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PagamentoServiceService = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 let PagamentoServiceService = class PagamentoServiceService {
-    getHello() {
-        return 'Hello World!';
+    decidirAprovacao(pedido) {
+        return pedido.mesa % 2 === 0;
     }
 };
 exports.PagamentoServiceService = PagamentoServiceService;

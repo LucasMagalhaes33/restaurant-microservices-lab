@@ -14,9 +14,4 @@ describe('PagamentoServiceController', () => {
     pagamentoServiceController = app.get<PagamentoServiceController>(PagamentoServiceController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(pagamentoServiceController.getHello()).toBe('Hello World!');
-    });
-  });
 });

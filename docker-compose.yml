@@ -3,3 +3,43 @@ services:
     image: nats:latest
     ports:
       - "4222:4222"
+
+  restaurant-microservices-lab:
+    build:
+      context: .
+      dockerfile: apps/restaurant-microservices-lab/Dockerfile
+    environment:
+      - NATS_URL=nats://nats:4222
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nats
+      - cozinha-service
+      - pagamento-service
+
+  pagamento-service:
+    build:
+      context: .
+      dockerfile: apps/pagamento-service/Dockerfile
+    environment:
+      - NATS_URL=nats://nats:4222
+    ports:
+      - "3002:3002"
+    depends_on:
+      - nats
+  cozinha-service:
+    build:
+      context: .
+      dockerfile: apps/cozinha-service/Dockerfile
+    environment:
+      - NATS_URL=nats://nats:4222
+    ports:
+      - "3001:3001"
+    depends_on:
+      - nats
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/cozinha/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
