@@ -1,0 +1,39 @@
+name: CI - cozinha-service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/cozinha-service/**'
+      - 'package.json'
+      - 'package-lock.json'
+  pull_request:
+    paths:
+      - 'apps/cozinha-service/**'
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configura Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instala dependências
+        run: npm ci
+
+      - name: Build
+        run: npx nest build cozinha-service
+
+      - name: Testes
+        run: npx jest --config apps/cozinha-service/test/jest-e2e.json || true
+
+      - name: Empacota imagem versionada
+        run: |
+          SHA_CURTO=$(git rev-parse --short HEAD)
+          echo "Imagem seria construída como: cozinha-service:${SHA_CURTO}"
+          # docker build -t cozinha-service:${SHA_CURTO} -f apps/cozinha-service/Dockerfile .
