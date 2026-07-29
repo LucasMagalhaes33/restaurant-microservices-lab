@@ -1,7 +1,8 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { PedidosService } from './pedidos-service.service';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
+import { PedidosService } from './pedidos.service';
 
-
+@UseGuards(ThrottlerGuard)
 @Controller('pedidos')
 export class PedidosController {
   constructor(private readonly pedidosService: PedidosService) {}

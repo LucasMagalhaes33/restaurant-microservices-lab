@@ -69,12 +69,21 @@ const pedidos_module_1 = __webpack_require__(/*! ./pedidos/pedidos.module */ "./
 const pagamento_module_1 = __webpack_require__(/*! ./pagamento/pagamento.module */ "./apps/restaurant-microservices-lab/src/pagamento/pagamento.module.ts");
 const fiscal_module_1 = __webpack_require__(/*! ./fiscal/fiscal.module */ "./apps/restaurant-microservices-lab/src/fiscal/fiscal.module.ts");
 const cozinha_facade_module_1 = __webpack_require__(/*! ./cozinha-facade/cozinha-facade.module */ "./apps/restaurant-microservices-lab/src/cozinha-facade/cozinha-facade.module.ts");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const throttler_1 = __webpack_require__(/*! @nestjs/throttler */ "@nestjs/throttler");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [pedidos_module_1.PedidosModule, pagamento_module_1.PagamentoModule, fiscal_module_1.FiscalModule, cozinha_facade_module_1.CozinhaFacadeModule],
+        imports: [
+            config_1.ConfigModule.forRoot({ isGlobal: true }),
+            throttler_1.ThrottlerModule.forRoot([{ ttl: 60000, limit: 20 }]),
+            pedidos_module_1.PedidosModule,
+            pagamento_module_1.PagamentoModule,
+            fiscal_module_1.FiscalModule,
+            cozinha_facade_module_1.CozinhaFacadeModule,
+        ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
@@ -112,6 +121,51 @@ exports.AppService = AppService = __decorate([
 
 /***/ },
 
+/***/ "./apps/restaurant-microservices-lab/src/common/guards/service-token.guard.ts"
+/*!************************************************************************************!*\
+  !*** ./apps/restaurant-microservices-lab/src/common/guards/service-token.guard.ts ***!
+  \************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ServiceTokenGuard = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+let ServiceTokenGuard = class ServiceTokenGuard {
+    configService;
+    constructor(configService) {
+        this.configService = configService;
+    }
+    canActivate(context) {
+        const request = context.switchToHttp().getRequest();
+        const tokenRecebido = request.headers['x-service-token'];
+        const tokenEsperado = this.configService.get('SERVICE_TOKEN');
+        if (tokenRecebido !== tokenEsperado) {
+            throw new common_1.UnauthorizedException('Token de serviço inválido ou ausente');
+        }
+        return true;
+    }
+};
+exports.ServiceTokenGuard = ServiceTokenGuard;
+exports.ServiceTokenGuard = ServiceTokenGuard = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object])
+], ServiceTokenGuard);
+
+
+/***/ },
+
 /***/ "./apps/restaurant-microservices-lab/src/cozinha-facade/cozinha-facade.controller.ts"
 /*!*******************************************************************************************!*\
   !*** ./apps/restaurant-microservices-lab/src/cozinha-facade/cozinha-facade.controller.ts ***!
@@ -131,19 +185,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CozinhaFacadeController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const axios_1 = __webpack_require__(/*! @nestjs/axios */ "@nestjs/axios");
 const rxjs_1 = __webpack_require__(/*! rxjs */ "rxjs");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const service_token_guard_1 = __webpack_require__(/*! ../common/guards/service-token.guard */ "./apps/restaurant-microservices-lab/src/common/guards/service-token.guard.ts");
 let CozinhaFacadeController = class CozinhaFacadeController {
     httpService;
-    constructor(httpService) {
+    configService;
+    constructor(httpService, configService) {
         this.httpService = httpService;
+        this.configService = configService;
     }
     async encaminhar(dto) {
-        const resposta = await (0, rxjs_1.firstValueFrom)(this.httpService.post('http://localhost:3001/cozinha', dto));
+        const url = this.configService.get('COZINHA_SERVICE_URL') ?? 'http://localhost:3001/cozinha';
+        const resposta = await (0, rxjs_1.firstValueFrom)(this.httpService.post(url, dto));
         return resposta.data;
     }
 };
@@ -157,7 +216,8 @@ __decorate([
 ], CozinhaFacadeController.prototype, "encaminhar", null);
 exports.CozinhaFacadeController = CozinhaFacadeController = __decorate([
     (0, common_1.Controller)('cozinha'),
-    __metadata("design:paramtypes", [typeof (_a = typeof axios_1.HttpService !== "undefined" && axios_1.HttpService) === "function" ? _a : Object])
+    (0, common_1.UseGuards)(service_token_guard_1.ServiceTokenGuard),
+    __metadata("design:paramtypes", [typeof (_a = typeof axios_1.HttpService !== "undefined" && axios_1.HttpService) === "function" ? _a : Object, typeof (_b = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _b : Object])
 ], CozinhaFacadeController);
 
 
@@ -358,7 +418,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PedidosController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const pedidos_service_service_1 = __webpack_require__(/*! ./pedidos-service.service */ "./apps/restaurant-microservices-lab/src/pedidos/pedidos-service.service.ts");
+const throttler_1 = __webpack_require__(/*! @nestjs/throttler */ "@nestjs/throttler");
+const pedidos_service_1 = __webpack_require__(Object(function webpackMissingModule() { var e = new Error("Cannot find module './pedidos.service'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 let PedidosController = class PedidosController {
     pedidosService;
     constructor(pedidosService) {
@@ -377,8 +438,9 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PedidosController.prototype, "criar", null);
 exports.PedidosController = PedidosController = __decorate([
+    (0, common_1.UseGuards)(throttler_1.ThrottlerGuard),
     (0, common_1.Controller)('pedidos'),
-    __metadata("design:paramtypes", [typeof (_a = typeof pedidos_service_service_1.PedidosService !== "undefined" && pedidos_service_service_1.PedidosService) === "function" ? _a : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof pedidos_service_1.PedidosService !== "undefined" && pedidos_service_1.PedidosService) === "function" ? _a : Object])
 ], PedidosController);
 
 
@@ -445,6 +507,16 @@ module.exports = require("@nestjs/common");
 
 /***/ },
 
+/***/ "@nestjs/config"
+/*!*********************************!*\
+  !*** external "@nestjs/config" ***!
+  \*********************************/
+(module) {
+
+module.exports = require("@nestjs/config");
+
+/***/ },
+
 /***/ "@nestjs/core"
 /*!*******************************!*\
   !*** external "@nestjs/core" ***!
@@ -462,6 +534,16 @@ module.exports = require("@nestjs/core");
 (module) {
 
 module.exports = require("@nestjs/microservices");
+
+/***/ },
+
+/***/ "@nestjs/throttler"
+/*!************************************!*\
+  !*** external "@nestjs/throttler" ***!
+  \************************************/
+(module) {
+
+module.exports = require("@nestjs/throttler");
 
 /***/ },
 

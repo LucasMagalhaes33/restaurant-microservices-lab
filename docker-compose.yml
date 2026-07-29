@@ -10,6 +10,8 @@ services:
       dockerfile: apps/restaurant-microservices-lab/Dockerfile
     environment:
       - NATS_URL=nats://nats:4222
+      - SERVICE_TOKEN=uma-chave-secreta-de-exemplo-troque-em-producao
+      - COZINHA_SERVICE_URL=http://cozinha-service:3001/cozinha
     ports:
       - "3000:3000"
     depends_on:
@@ -27,6 +29,7 @@ services:
       - "3002:3002"
     depends_on:
       - nats
+
   cozinha-service:
     build:
       context: .
