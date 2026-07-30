@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PedidosController } from './pedidos.controller';
-import { PedidosService } from './pedidos-service.service';
+import { PedidosService } from './pedidos.service';
 
 @Module({
   imports: [
